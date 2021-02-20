@@ -46,46 +46,58 @@ function createMap(earthquakes) {
 // Create the createMarkers function
 function createMarkers(earthquakeData) {
     
-    // function styleLayer(feature) {
-    //     return {
-    //         color: "#fff",
-    //         fillOpacity: 1.0
-    //     }
-    // }
+    function styleLayer(feature) {
+        return {
+            color: "#fff",
+            fillOpacity: 1.0
+        }
+    }
 
-    // // Define a function run for each feature in the features array
-    // function onEachFeature(feature, layer) {
-    //     // Set mouse events to change map styling
-    //     layer.on({
-    //         // When a user's mouse touches a map feature, the mouseover event calls this function, that feature's opacity changes to 90% so that it stands out
-    //         mouseover: function (event) {
-    //             layer = event.target;
-    //             layer.setStyle({
-    //                 fillOpacity: 0.9
-    //             });
-    //         },
-    //         // When the cursor no longer hovers over a map feature - when the mouseout event occurs - the feature's opacity reverts back to 50%
-    //         mouseout: function (event) {
-    //             layer = event.target;
-    //             layer.setStyle({
-    //                 fillOpacity: 0.75
-    //             });
-    //         }
-    //     });
+    var geojsonMarkerOptions = {
+        radius: 8,
+        fillColor: "#ff7800",
+        color: "#000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8
+    };
+    
+    // Define a function run for each feature in the features array
+    function onEachFeature(feature, layer) {
+        // Set mouse events to change map styling
+        layer.on({
+            // When a user's mouse touches a map feature, the mouseover event calls this function, that feature's opacity changes to 90% so that it stands out
+            mouseover: function (event) {
+                layer = event.target;
+                layer.setStyle({
+                    fillOpacity: 0.9
+                });
+            },
+            // When the cursor no longer hovers over a map feature - when the mouseout event occurs - the feature's opacity reverts back to 50%
+            mouseout: function (event) {
+                layer = event.target;
+                layer.setStyle({
+                    fillOpacity: 0.75
+                });
+            }
+        });
             
-    //     layer.bindPopup("<h3>" + feature.properties.place + "</h3><hr><p>" + 
-    //     new Date(feature.properties.time) + "</p>")
-    // }
+        layer.bindPopup("<h3>" + feature.properties.place + "</h3><hr><p>" + 
+        new Date(feature.properties.time) + "</p>")
+    }
 
 
-    // var earthquakes = L.geoJson(earthquakeData, {
-    //     style: styleLayer,
-    //     onEachFeature: onEachFeature
-    // })
-    earthquakes = []
-    earthquakeData.forEach(function (feature) {
-        
+    var earthquakes = L.geoJson(earthquakeData, {
+        style: styleLayer,
+        pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng, geojsonMarkerOptions);
+        },
+        onEachFeature: onEachFeature
     })
+    // earthquakes = []
+    // earthquakeData.forEach(function (feature) {
+
+    // })
     
     createMap(earthquakes)
 }
