@@ -1,5 +1,5 @@
 var usaCenter = [44.58, -103.46];
-var mapZoomLevel = 4;
+var mapZoomLevel = 3;
 
 // Create the createMap function
 function createMap(earthquakes) {
@@ -46,22 +46,42 @@ function createMap(earthquakes) {
 // Create the createMarkers function
 function createMarkers(earthquakeData) {
     
-    function styleLayer(feature) {
-        return {
-            color: "#fff",
-            fillOpacity: 1.0
+    // function styleLayer(feature) {
+    //     return {
+    //         color: "#fff",
+    //         fillOpacity: 1.0
+    //     }
+    // }
+
+    function pointToCircle(feature, latlng) {
+        circleRadius = function(feature) {
+            return feature.properties.mag * 3
         }
+        
+        circleColor = function(feature) {
+            depth = feature.geometry.coordinates[2];
+            if (depth <= 10) {return "#6dfa4d"}
+            else if (depth > 10 && depth <= 30) {return "#cffa4d"}
+            else if (depth > 30 && depth <= 50) {return "#ffd54a"}
+            else if (depth > 50 && depth <= 70) {return "#ffb14a"}
+            else if (depth > 70 && depth <= 90) {return "#ff804a"}
+            else {return "#ff564a"}
+        }
+        
+        var geojsonMarkerOptions = {
+            radius: circleRadius(feature),
+            fillColor: circleColor(feature),
+            color: "#000",
+            weight: 1,
+            opacity: 0.5,
+            fillOpacity: 0.8
+        };
+
+        return L.circleMarker(latlng, geojsonMarkerOptions);
+        
     }
 
-    var geojsonMarkerOptions = {
-        radius: 8,
-        fillColor: "#ff7800",
-        color: "#000",
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.8
-    };
-    
+
     // Define a function run for each feature in the features array
     function onEachFeature(feature, layer) {
         // Set mouse events to change map styling
@@ -88,10 +108,8 @@ function createMarkers(earthquakeData) {
 
 
     var earthquakes = L.geoJson(earthquakeData, {
-        style: styleLayer,
-        pointToLayer: function (feature, latlng) {
-            return L.circleMarker(latlng, geojsonMarkerOptions);
-        },
+        // style: styleLayer,
+        pointToLayer: pointToCircle,
         onEachFeature: onEachFeature
     })
     // earthquakes = []
