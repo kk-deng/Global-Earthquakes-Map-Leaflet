@@ -55,12 +55,15 @@ function createMarkers(earthquakeData) {
 
     function pointToCircle(feature, latlng) {
         circleRadius = function(feature) {
-            return feature.properties.mag * 3
+            if (feature.properties.mag <= 0) {return 0}
+            else {return feature.properties.mag * 3}
+            
         }
-        
+
         circleColor = function(feature) {
             depth = feature.geometry.coordinates[2];
-            if (depth <= 10) {return "#6dfa4d"}
+            if (depth <= -10) {return "#000";}
+            else if (depth > -10 && depth <= 10) {return "#6dfa4d"}
             else if (depth > 10 && depth <= 30) {return "#cffa4d"}
             else if (depth > 30 && depth <= 50) {return "#ffd54a"}
             else if (depth > 50 && depth <= 70) {return "#ffb14a"}
@@ -102,20 +105,15 @@ function createMarkers(earthquakeData) {
             }
         });
             
-        layer.bindPopup("<h3>" + feature.properties.place + "</h3><hr><p>" + 
+        layer.bindPopup("<h3>" + feature.properties.place + "</h3><br><h3> Mag: " + feature.properties.mag +"</h3><hr><p>" + 
         new Date(feature.properties.time) + "</p>")
     }
-
 
     var earthquakes = L.geoJson(earthquakeData, {
         // style: styleLayer,
         pointToLayer: pointToCircle,
         onEachFeature: onEachFeature
     })
-    // earthquakes = []
-    // earthquakeData.forEach(function (feature) {
-
-    // })
     
     createMap(earthquakes)
 }
