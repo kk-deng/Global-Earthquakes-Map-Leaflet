@@ -24,7 +24,7 @@ html {
 /* Legend i box size should be not bigger than legend font size +1 */
 .legend i {
   width: 13px;
-  height: 13px;
+  height: 14px;
   float: left;
   margin-right: 8px;
 }
