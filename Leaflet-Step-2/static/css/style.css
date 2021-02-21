@@ -21,28 +21,10 @@ html {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
 }
 
-.legend ul {
-  padding: 0;
-  margin: 0;
-  clear: both;
-  list-style-type: none;
-}
-
-.legend li {
-  display: inline-block;
-  width: 30px;
-  height: 22px;
-}
-
-.legend .min {
+/* Legend i box size should be not bigger than legend font size +1 */
+.legend i {
+  width: 13px;
+  height: 13px;
   float: left;
-  padding-bottom: 5px;
-}
-
-.legend .max {
-  float: right;
-}
-
-h1 {
-  text-align: center;
+  margin-right: 8px;
 }

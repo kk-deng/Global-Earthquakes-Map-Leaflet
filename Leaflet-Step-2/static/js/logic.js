@@ -2,7 +2,7 @@ var usaCenter = [44.58, -103.46];
 var mapZoomLevel = 3;
 
 // Create the createMap function
-function createMap(earthquakes) {
+function createMap(earthquakes, tectonicPlates) {
     // Create the tile layer that will be the background of our map
     var lightLayer = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
         attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
@@ -30,50 +30,63 @@ function createMap(earthquakes) {
 
     // Create an overlayMaps object to hold the earthquakes layer
     var overlayMaps = {
-        Earthquakes: earthquakes
+        "Earthquakes": earthquakes,
+        "Tectonic Plates": tectonicPlates
     };
     // Create the map object with options
     var map = L.map("mapid", {
         center: usaCenter,
         zoom: mapZoomLevel,
-        layers: [lightLayer, earthquakes]
+        layers: [lightLayer, earthquakes, tectonicPlates]
     });
 
     // Create a layer control, pass in the baseMaps and overlayMaps. Add the layer control to the map
     L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+    // Set up the legend for depth
+    var legend = L.control({position: 'bottomright'});
+    legend.onAdd = function() {
+        var div = L.DomUtil.create("div", "info legend"),
+            categoris = [-10, 10, 30, 50, 70, 90];
+        
+        for (var i = 0; i < categoris.length; i++) {
+            if (i == 0) {
+                div.innerHTML += '<h5>Depth (m)</h5>';
+            }
+            div.innerHTML +=
+                '<i style="background:' + circleColor(categoris[i] + 1) + '"></i> ' + 
+            + categoris[i] + (categoris[i + 1] ? ' - ' + categoris[i + 1] + '<br>' : ' + ');
+        }
+
+        return div;
+    }
+
+    legend.addTo(map);
 };
 
-// Create the createMarkers function
-function createMarkers(earthquakeData) {
+function circleRadius(feature) {
+    if (feature.properties.mag <= 0) {return 0}
+    else {return feature.properties.mag * 3}
     
-    // function styleLayer(feature) {
-    //     return {
-    //         color: "#fff",
-    //         fillOpacity: 1.0
-    //     }
-    // }
+}
 
+function circleColor(depth) {
+    if (depth > -10 && depth <= 10) {return "#6dfa4d"}
+    else if (depth > 10 && depth <= 30) {return "#cffa4d"}
+    else if (depth > 30 && depth <= 50) {return "#ffd54a"}
+    else if (depth > 50 && depth <= 70) {return "#ffb14a"}
+    else if (depth > 70 && depth <= 90) {return "#ff804a"}
+    else {return "#ff564a"}
+}
+
+// Create the createMarkers function
+function createLayers(earthquakeData, dataTectonic) {
+    
     function pointToCircle(feature, latlng) {
-        circleRadius = function(feature) {
-            if (feature.properties.mag <= 0) {return 0}
-            else {return feature.properties.mag * 3}
-            
-        }
-
-        circleColor = function(feature) {
-            depth = feature.geometry.coordinates[2];
-            if (depth <= -10) {return "#000";}
-            else if (depth > -10 && depth <= 10) {return "#6dfa4d"}
-            else if (depth > 10 && depth <= 30) {return "#cffa4d"}
-            else if (depth > 30 && depth <= 50) {return "#ffd54a"}
-            else if (depth > 50 && depth <= 70) {return "#ffb14a"}
-            else if (depth > 70 && depth <= 90) {return "#ff804a"}
-            else {return "#ff564a"}
-        }
         
         var geojsonMarkerOptions = {
             radius: circleRadius(feature),
-            fillColor: circleColor(feature),
+            fillColor: circleColor(feature.geometry.coordinates[2]),
             color: "#000",
             weight: 1,
             opacity: 0.5,
@@ -110,18 +123,27 @@ function createMarkers(earthquakeData) {
     }
 
     var earthquakes = L.geoJson(earthquakeData, {
-        // style: styleLayer,
         pointToLayer: pointToCircle,
         onEachFeature: onEachFeature
     })
+
+    var tectonicPlates = L.geoJson(dataTectonic)
+
+    createMap(earthquakes, tectonicPlates)
     
-    createMap(earthquakes)
 }
 
+// Referencing two geojson file urls
+var geoURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson",
+    tectonicURL = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json"
 
-var geoData = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
+// Use d3 queue to load both files asynchronously
+d3.queue()
+    .defer(d3.json, geoURL)
+    .defer(d3.json, tectonicURL)
+    .await(function(error, dataEarthquakes, dataTectonic) {
+        if (error) throw error;
 
-d3.json(geoData, data => {
-    console.log(data)
-    createMarkers(data.features)
-})
+        // Parse two sets of geoJSON data into layer function
+        createLayers(dataEarthquakes.features, dataTectonic)
+    });
