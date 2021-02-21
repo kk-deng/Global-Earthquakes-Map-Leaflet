@@ -47,6 +47,8 @@ function createMap(earthquakes, tectonicPlates) {
     // Create a layer control, pass in the baseMaps and overlayMaps. Add the layer control to the map
     L.control.layers(baseMaps, overlayMaps).addTo(map);
 
+    L.control.scale().addTo(map);
+
     // Set up the legend for depth
     var legend = L.control({position: 'bottomright'});
     legend.onAdd = function() {
