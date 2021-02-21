@@ -37,7 +37,7 @@ function createMap(earthquakes, tectonicPlates) {
     var map = L.map("mapid", {
         center: usaCenter,
         zoom: mapZoomLevel,
-        layers: [lightLayer, earthquakes, tectonicPlates]
+        layers: [lightLayer, tectonicPlates, earthquakes]
     });
 
     // Create a layer control, pass in the baseMaps and overlayMaps. Add the layer control to the map
@@ -51,7 +51,7 @@ function createMap(earthquakes, tectonicPlates) {
         
         for (var i = 0; i < categoris.length; i++) {
             if (i == 0) {
-                div.innerHTML += '<h5>Depth (m)</h5>';
+                div.innerHTML += '<h5>Depth (m)</h5><hr>';
             }
             div.innerHTML +=
                 '<i style="background:' + circleColor(categoris[i] + 1) + '"></i> ' + 
@@ -64,24 +64,29 @@ function createMap(earthquakes, tectonicPlates) {
     legend.addTo(map);
 };
 
+// A function to return circle radius by its magnitude
 function circleRadius(feature) {
-    if (feature.properties.mag <= 0) {return 0}
-    else {return feature.properties.mag * 3}
+    // If magnitude is less than 0, return 0, otherwise return 3x values
+    return feature.properties.mag <= 0 ? 0: feature.properties.mag * 3;
     
 }
 
+// Use conditional (Ternary) operators to replace boring IF conditions ;)
 function circleColor(depth) {
-    if (depth > -10 && depth <= 10) {return "#6dfa4d"}
-    else if (depth > 10 && depth <= 30) {return "#cffa4d"}
-    else if (depth > 30 && depth <= 50) {return "#ffd54a"}
-    else if (depth > 50 && depth <= 70) {return "#ffb14a"}
-    else if (depth > 70 && depth <= 90) {return "#ff804a"}
-    else {return "#ff564a"}
+    // Meaning if the depth condition is true, then return value after "?"
+    // if false, then move to next line after ":"
+    return depth > -10 && depth <= 10 ? "#6dfa4d":
+            depth > 10 && depth <= 30 ? "#cffa4d":
+            depth > 30 && depth <= 50 ? "#ffd54a":
+            depth > 50 && depth <= 70 ? "#ffb14a":
+            depth > 70 && depth <= 90 ? "#ff804a":
+                                        "#ff564a";
 }
 
 // Create the createMarkers function
 function createLayers(earthquakeData, dataTectonic) {
     
+    // A function to return pointToLayer groups with dynamic radius and color
     function pointToCircle(feature, latlng) {
         
         var geojsonMarkerOptions = {
@@ -93,43 +98,59 @@ function createLayers(earthquakeData, dataTectonic) {
             fillOpacity: 0.8
         };
 
+        // Return a group of circle layers
         return L.circleMarker(latlng, geojsonMarkerOptions);
         
     }
-
 
     // Define a function run for each feature in the features array
     function onEachFeature(feature, layer) {
         // Set mouse events to change map styling
         layer.on({
-            // When a user's mouse touches a map feature, the mouseover event calls this function, that feature's opacity changes to 90% so that it stands out
+            // When a user's mouse touches a map feature, the mouseover event calls this function, 
+            // that feature's opacity changes to 100% so that it stands out
             mouseover: function (event) {
                 layer = event.target;
                 layer.setStyle({
-                    fillOpacity: 0.9
+                    color: "#fff",
+                    weight: 3,
+                    fillOpacity: 1.0
                 });
             },
-            // When the cursor no longer hovers over a map feature - when the mouseout event occurs - the feature's opacity reverts back to 50%
+            // When the cursor no longer hovers over a map feature - when the mouseout event occurs - 
+            // the feature's opacity reverts back to 40%
             mouseout: function (event) {
                 layer = event.target;
                 layer.setStyle({
-                    fillOpacity: 0.75
+                    color: "#000",
+                    weight: 1,
+                    fillOpacity: 0.4
                 });
             }
         });
-            
-        layer.bindPopup("<h3>" + feature.properties.place + "</h3><br><h3> Mag: " + feature.properties.mag +"</h3><hr><p>" + 
-        new Date(feature.properties.time) + "</p>")
+        
+        // Bind popups for all earthquakes
+        layer.bindPopup(
+            "<h3>Location: " + feature.properties.place + "<br> Magnitude: " + 
+            feature.properties.mag +"<br>Depth: " + feature.geometry.coordinates[2] + 
+            "</h3><hr><p>" + new Date(feature.properties.time) + "</p>")
     }
 
     var earthquakes = L.geoJson(earthquakeData, {
         pointToLayer: pointToCircle,
         onEachFeature: onEachFeature
-    })
+    });
 
-    var tectonicPlates = L.geoJson(dataTectonic)
+    var tectonicPlates = L.geoJson(dataTectonic, {
+        style: function (feature) {
+            return {
+                color: "#ffc252",
+                opacity: 0.7
+            };
+        }
+    });
 
-    createMap(earthquakes, tectonicPlates)
+    createMap(earthquakes, tectonicPlates);
     
 }
 
