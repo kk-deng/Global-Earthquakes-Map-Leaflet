@@ -1,31 +1,35 @@
+// Setting center point of map and zoom level
 var usaCenter = [44.58, -103.46];
 var mapZoomLevel = 3;
 
 // Create the createMap function
 function createMap(earthquakes, tectonicPlates) {
     // Create the tile layer that will be the background of our map
-    var lightLayer = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
-        attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
-        tileSize: 512,
-        maxZoom: 18,
-        zoomOffset: -1,
-        id: "mapbox/light-v10",
-        accessToken: API_KEY
-    });
-
-    var darkLayer = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
-        attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
-        tileSize: 512,
-        maxZoom: 18,
-        zoomOffset: -1,
-        id: "mapbox/dark-v10",
-        accessToken: API_KEY
-    });
+    function addTileLayer(mode) {
+        return L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+            attribution: "Developed by Kelvin Deng © <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
+            tileSize: 512,
+            maxZoom: 18,
+            zoomOffset: -1,
+            id: mode,
+            accessToken: API_KEY
+        });
+    }
+    
+    // Initialize with multiple tiles
+    var lightLayer = addTileLayer("mapbox/light-v10"),
+        darkLayer = addTileLayer("mapbox/dark-v10"),
+        sateliteLayer = addTileLayer("mapbox/satellite-v9"),
+        outdoorsLayer = addTileLayer("mapbox/outdoors-v11"),
+        streetLayer = addTileLayer("mapbox/satellite-streets-v11")
 
     // Create a baseMaps object to hold the multiple layers
     var baseMaps = {
+        Dark: darkLayer,
         Light: lightLayer,
-        Dark: darkLayer
+        Satelite: sateliteLayer,
+        Outdoors: outdoorsLayer,
+        Street: streetLayer
     };
 
     // Create an overlayMaps object to hold the earthquakes layer
@@ -37,7 +41,7 @@ function createMap(earthquakes, tectonicPlates) {
     var map = L.map("mapid", {
         center: usaCenter,
         zoom: mapZoomLevel,
-        layers: [lightLayer, tectonicPlates, earthquakes]
+        layers: [darkLayer, tectonicPlates, earthquakes]
     });
 
     // Create a layer control, pass in the baseMaps and overlayMaps. Add the layer control to the map
@@ -46,12 +50,14 @@ function createMap(earthquakes, tectonicPlates) {
     // Set up the legend for depth
     var legend = L.control({position: 'bottomright'});
     legend.onAdd = function() {
+        // A list of all values for the legend
         var div = L.DomUtil.create("div", "info legend"),
             categoris = [-10, 10, 30, 50, 70, 90];
         
+        // Append each line HTML of color block and range to the div
         for (var i = 0; i < categoris.length; i++) {
             if (i == 0) {
-                div.innerHTML += '<h5>Depth (m)</h5><hr>';
+                div.innerHTML += '<p>Depth (m)</p><hr>';
             }
             div.innerHTML +=
                 '<i style="background:' + circleColor(categoris[i] + 1) + '"></i> ' + 
@@ -124,7 +130,7 @@ function createLayers(earthquakeData, dataTectonic) {
                 layer.setStyle({
                     color: "#000",
                     weight: 1,
-                    fillOpacity: 0.4
+                    fillOpacity: 0.3
                 });
             }
         });
@@ -135,17 +141,19 @@ function createLayers(earthquakeData, dataTectonic) {
             feature.properties.mag +"<br>Depth: " + feature.geometry.coordinates[2] + 
             "</h3><hr><p>" + new Date(feature.properties.time) + "</p>")
     }
-
+    
+    // Layer for earthquakes with circles and style
     var earthquakes = L.geoJson(earthquakeData, {
         pointToLayer: pointToCircle,
         onEachFeature: onEachFeature
     });
 
+    // Layer for Tectionic Plates with style
     var tectonicPlates = L.geoJson(dataTectonic, {
         style: function (feature) {
             return {
                 color: "#ffc252",
-                opacity: 0.7
+                opacity: 0.8
             };
         }
     });
