@@ -81,12 +81,12 @@ function circleRadius(feature) {
 function circleColor(depth) {
     // Meaning if the depth condition is true, then return value after "?"
     // if false, then move to next line after ":"
-    return depth > -10 && depth <= 10 ? "#6dfa4d":
-            depth > 10 && depth <= 30 ? "#cffa4d":
-            depth > 30 && depth <= 50 ? "#ffd54a":
-            depth > 50 && depth <= 70 ? "#ffb14a":
-            depth > 70 && depth <= 90 ? "#ff804a":
-                                        "#ff564a";
+    return depth <= 10 ? "#6dfa4d":
+            depth <= 30 ? "#cffa4d":
+            depth <= 50 ? "#ffd54a":
+            depth <= 70 ? "#ffb14a":
+            depth <= 90 ? "#ff804a":
+                            "#ff564a";
 }
 
 // Create the createMarkers function
